@@ -1,12 +1,24 @@
-import { HttpService, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpService, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
-import { TvShow, TvShowDetailsResponse } from 'src/models/tv-show.model';
+import { ENV_MISSING_TV_SHOW_API } from '../env.errors';
+import { TvShow, TvShowDetailsResponse } from '../models/tv-show.model';
+import { GIVEN_TV_SHOW_ID_NOT_FOUND } from './tv-show.errors';
 
 @Injectable()
 export class TvShowService {
-    constructor(private httpService: HttpService) { }
+    constructor(private configService: ConfigService, private httpService: HttpService) { }
 
     async getTvShow(id: String): Promise<TvShow> {
-        return (await this.httpService.get(`https://www.episodate.com/api/show-details?q=${id}`).toPromise<AxiosResponse<TvShowDetailsResponse>>()).data.tvShow;
+        const tvShowApi = this.configService.get<String>("TV_SHOW_API");
+        if (!tvShowApi) {
+            throw new BadRequestException(ENV_MISSING_TV_SHOW_API);
+        }
+        const tvShowDetailsResponse = (await this.httpService.get(`${tvShowApi}/show-details?q=${id}`).toPromise<AxiosResponse<TvShowDetailsResponse>>()).data;
+
+        if (!tvShowDetailsResponse.tvShow.id) {
+            throw new NotFoundException(GIVEN_TV_SHOW_ID_NOT_FOUND);
+        }
+        return tvShowDetailsResponse.tvShow;
     }
 }

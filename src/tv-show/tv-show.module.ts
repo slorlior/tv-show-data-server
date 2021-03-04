@@ -1,10 +1,12 @@
 import { HttpModule, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TvShowResolver } from './tv-show.resolver';
 import { TvShowService } from './tv-show.service';
 
 @Module({
     imports: [
+        ConfigModule.forRoot(),
         HttpModule,
         GraphQLModule.forRoot({
             autoSchemaFile: 'schema.gql',

@@ -1,5 +1,5 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { TvShow } from 'src/models/tv-show.model';
+import { TvShow } from '../models/tv-show.model';
 import { TvShowService } from './tv-show.service';
 
 @Resolver(of => TvShow)
