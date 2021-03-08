@@ -12,7 +12,8 @@ export class MyShowsController {
     @ApiOkResponse({ type: [TvShowDatabase] })
     @ApiQuery({ name: 'includeEnded', enum: IncludeEnded, required: false })
     async getShows(@Query('includeEnded') includeEnded: IncludeEnded = IncludeEnded.False): Promise<TvShowDatabase[]> {
-        return await this.myShowsService.getShows(includeEnded);
+        const shouldIncludeEnded = includeEnded === IncludeEnded.True;
+        return await this.myShowsService.getShows(shouldIncludeEnded);
     }
 
     @Post('shows/:name')

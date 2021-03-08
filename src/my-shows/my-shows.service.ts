@@ -2,25 +2,24 @@ import { BadRequestException, ConflictException, HttpService, Injectable, NotFou
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { TvShowDatabase } from '../models/database.model';
-import { DATABASE_NAME } from '../database/database.consts';
+import { DATABASE_NAME, DATABASE_PATH } from '../database/database.consts';
 import { ENV_MISSING_TV_SHOW_API } from '../env.errors';
 import { TvShowSearchResponse } from '../models/tv-show.model';
 import { GIVEN_SHOW_ALREADY_EXISTS, GIVEN_SHOW_DOESNT_EXISTS } from './my-shows.errors';
 const StormDB = require("stormdb");
 
-
 @Injectable()
 export class MyShowsService {
     private db;
     constructor(private configService: ConfigService, private httpService: HttpService) {
-        const engine = new StormDB.localFileEngine("src/database/database.tvshows.stormdb", { async: true });
+        const engine = new StormDB.localFileEngine(DATABASE_PATH, { async: true });
         this.db = new StormDB(engine);
         this.db.default({ tvshows: [] });
     }
 
-    async getShows(includeEnded: String): Promise<TvShowDatabase[]> {
+    async getShows(includeEnded: Boolean): Promise<TvShowDatabase[]> {
         const tvShows: TvShowDatabase[] = this.db.get(DATABASE_NAME).value();
-        if (includeEnded === 'false') {
+        if (!includeEnded) {
             return tvShows.filter(show => show.status !== 'Ended');
         }
         return tvShows;
