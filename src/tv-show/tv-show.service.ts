@@ -1,4 +1,4 @@
-import { BadRequestException, HttpService, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpService, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { ENV_MISSING_TV_SHOW_API } from '../env.errors';
@@ -14,9 +14,15 @@ export class TvShowService {
         if (!tvShowApi) {
             throw new BadRequestException(ENV_MISSING_TV_SHOW_API);
         }
-        const tvShowDetailsResponse = (await this.httpService.get(`${tvShowApi}/show-details?q=${id}`).toPromise<AxiosResponse<TvShowDetailsResponse>>()).data;
 
-        if (!tvShowDetailsResponse.tvShow.id) {
+        let tvShowDetailsResponse;
+        try {
+            tvShowDetailsResponse = (await this.httpService.get(`${tvShowApi}/show-details?q=${id}`).toPromise<AxiosResponse<TvShowDetailsResponse>>()).data;
+        } catch (error) {
+            throw new ServiceUnavailableException(error);
+        }
+
+        if (!tvShowDetailsResponse.tvShow || !tvShowDetailsResponse.tvShow.id) {
             throw new NotFoundException(GIVEN_TV_SHOW_ID_NOT_FOUND);
         }
         return tvShowDetailsResponse.tvShow;
