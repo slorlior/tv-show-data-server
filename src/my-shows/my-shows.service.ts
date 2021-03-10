@@ -1,24 +1,22 @@
-import { BadRequestException, ConflictException, HttpService, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpService, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { TvShowDatabase } from '../models/database.model';
-import { DATABASE_NAME, DATABASE_PATH } from '../database/database.consts';
 import { ENV_MISSING_TV_SHOW_API } from '../env.errors';
 import { TvShowSearchResponse } from '../models/tv-show.model';
 import { GIVEN_SHOW_ALREADY_EXISTS, GIVEN_SHOW_DOESNT_EXISTS } from './my-shows.errors';
-const StormDB = require("stormdb");
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class MyShowsService {
-    private db;
-    constructor(private configService: ConfigService, private httpService: HttpService) {
-        const engine = new StormDB.localFileEngine(DATABASE_PATH, { async: true });
-        this.db = new StormDB(engine);
-        this.db.default({ tvshows: [] });
+
+    constructor(private configService: ConfigService,
+        private httpService: HttpService,
+        private databaseService: DatabaseService) {
     }
 
     async getShows(includeEnded: Boolean): Promise<TvShowDatabase[]> {
-        const tvShows: TvShowDatabase[] = this.db.get(DATABASE_NAME).value();
+        const tvShows: TvShowDatabase[] = await this.databaseService.getAllTvShows();
         if (!includeEnded) {
             return tvShows.filter(show => show.status !== 'Ended');
         }
@@ -31,23 +29,30 @@ export class MyShowsService {
         if (!tvShowApi) {
             throw new BadRequestException(ENV_MISSING_TV_SHOW_API);
         }
-        const tvShowsFound = (await this.httpService.get(`${tvShowApi}/search?q=${name}&page=1`).toPromise<AxiosResponse<TvShowSearchResponse>>()).data.tv_shows;
+        let tvShowsFound;
+        try {
+            tvShowsFound = (await this.httpService.get(`${tvShowApi}/search?q=${name}&page=1`).toPromise<AxiosResponse<TvShowSearchResponse>>()).data.tv_shows;
+        } catch (error) {
+            throw new ServiceUnavailableException(error);
+        }
         if (tvShowsFound.length == 0) {
-            throw new NotFoundException(GIVEN_SHOW_DOESNT_EXISTS)
+            throw new NotFoundException(GIVEN_SHOW_DOESNT_EXISTS);
         }
         const tvShow = tvShowsFound[0];
-        if (this.db.get(DATABASE_NAME).value().find(show => show.id === tvShow.id)) {
-            throw new ConflictException(GIVEN_SHOW_ALREADY_EXISTS)
+        if (this.databaseService.getTvShowById(tvShow.id)) {
+            throw new ConflictException(GIVEN_SHOW_ALREADY_EXISTS);
         }
-        this.db.get(DATABASE_NAME).push({ id: tvShow.id, name: tvShow.name, status: tvShow.status });
-        await this.db.save();
+        const tvShowDatabase = new TvShowDatabase();
+        tvShowDatabase.id = tvShow.id;
+        tvShowDatabase.name = tvShow.name;
+        tvShowDatabase.status = tvShow.status;
+        this.databaseService.addTvShow(tvShowDatabase);
     }
 
-    async deleteShow(id: String): Promise<void> {
-        if (!this.db.get(DATABASE_NAME).value().find(show => show.id == id)) {
+    async deleteShow(id: Number): Promise<void> {
+        if (!this.databaseService.getTvShowById(id)) {
             throw new NotFoundException(GIVEN_SHOW_DOESNT_EXISTS)
         }
-        this.db.get(DATABASE_NAME).filter(show => show.id != id);
-        await this.db.save();
+        this.databaseService.deleteTvShowById(id);
     }
 }

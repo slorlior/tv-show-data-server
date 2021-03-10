@@ -2,9 +2,9 @@ import * as faker from "faker";
 import { Episode } from "../episode.model";
 
 export class EpisodeMock extends Episode {
-    season: number;
+    season: Number;
 
-    episode: number;
+    episode: Number;
 
     name: String;
 

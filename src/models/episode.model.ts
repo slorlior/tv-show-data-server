@@ -3,10 +3,10 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 export class Episode {
     @Field(type => Int)
-    season: number;
+    season: Number;
 
     @Field(type => Int)
-    episode: number;
+    episode: Number;
 
     @Field()
     name: String;

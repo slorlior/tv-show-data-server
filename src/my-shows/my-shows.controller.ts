@@ -1,7 +1,8 @@
-import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { TvShowDatabase } from '../models/database.model';
 import { IncludeEnded } from '../models/includeEnded.model';
+import { ID_IS_NAN } from './my-shows.errors';
 import { MyShowsService } from './my-shows.service';
 
 @Controller('my-shows')
@@ -23,6 +24,10 @@ export class MyShowsController {
 
     @Delete('shows/:id')
     async deleteShow(@Param('id') id: String): Promise<void> {
-        return await this.myShowsService.deleteShow(id);
+        const idNumber = Number(id);
+        if (isNaN(idNumber)) {
+            throw new BadRequestException(ID_IS_NAN);
+        }
+        return await this.myShowsService.deleteShow(idNumber);
     }
 }

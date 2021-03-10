@@ -2,11 +2,11 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class TvShowDatabase {
     @ApiProperty({ required: true })
-    id: number;
+    id: Number;
 
     @ApiProperty({ required: true })
-    name: string;
+    name: String;
 
     @ApiProperty({ required: true })
-    status: string;
+    status: String;
 }

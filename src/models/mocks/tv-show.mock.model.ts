@@ -1,21 +1,21 @@
 import * as faker from "faker";
-import { TvShow, TvShowDetailsResponse } from "../tv-show.model";
+import { TvShow, TvShowDetailsResponse, TvShowSearchResponse } from "../tv-show.model";
 import { EpisodeMock } from "./episode.mock.model";
 
 export class TvShowMock extends TvShow {
-    id: number;
+    id: Number;
 
-    name: string;
+    name: String;
 
-    description: string;
+    description: String;
 
-    status: string;
+    status: String;
 
-    image_path: string;
+    image_path: String;
 
-    image_thumbnail_path: string;
+    image_thumbnail_path: String;
 
-    genres: string[];
+    genres: String[];
 
     episodes: EpisodeMock[];
 
@@ -42,5 +42,13 @@ export class TvShowDetailsResponseMock extends TvShowDetailsResponse {
     constructor() {
         super();
         this.tvShow = new TvShowMock();
+    }
+}
+
+export class TvShowSearchResponseMock extends TvShowSearchResponse {
+    tv_shows: TvShowMock[];
+    constructor() {
+        super();
+        this.tv_shows = [new TvShowMock()];
     }
 }

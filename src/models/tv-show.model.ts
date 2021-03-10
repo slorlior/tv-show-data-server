@@ -4,25 +4,25 @@ import { Episode } from './episode.model';
 @ObjectType()
 export class TvShow {
     @Field(type => Int)
-    id: number;
+    id: Number;
 
     @Field()
-    name: string;
+    name: String;
 
     @Field()
-    description: string;
+    description: String;
 
     @Field()
-    status: string;
+    status: String;
 
     @Field()
-    image_path: string;
+    image_path: String;
 
     @Field()
-    image_thumbnail_path: string;
+    image_thumbnail_path: String;
 
     @Field(type => [String])
-    genres: string[];
+    genres: String[];
 
     @Field(type => [Episode])
     episodes: Episode[];
